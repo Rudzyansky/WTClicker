@@ -83,7 +83,7 @@ inline void decreaseWT(UINT i) {
 
 inline void setTimer(UINT_PTR *timer, UINT uElapse, TIMERPROC callback) {
     *timer = SetTimer(NULL, NULL, uElapse, callback);
-    if (timerController == NULL) {
+    if (timer == NULL) {
         printText("SetTimer failed");
         PostQuitMessage(1);
     }
