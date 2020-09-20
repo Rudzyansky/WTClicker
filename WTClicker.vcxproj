@@ -139,10 +139,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
     <ClInclude Include="WTClicker.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WTClicker.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="wtc.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="WTClicker.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

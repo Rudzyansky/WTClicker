@@ -1,7 +1,5 @@
 ﻿#include <Windows.h>
 #include <strsafe.h>
-#include <shellapi.h>
-#include <Shlwapi.h>
 #include <Mmdeviceapi.h>
 #include <endpointvolume.h>
 #include "WTClicker.h"
@@ -11,11 +9,6 @@
 
 void callbackExit() {
     killTimer(&timerController);
-    if (timerPayload != NULL) {
-        sendInput(MOUSEEVENTF_LEFTUP);
-        killTimer(&timerPayload);
-        printCounter();
-    }
     printText("Exiting");
     PostQuitMessage(0);
 }
@@ -55,30 +48,25 @@ Exit:
     SAFE_RELEASE(pDevice);
 }
 
-void callbackTogglePayload() {
-    if (timerPayload == NULL) {
-        printText("Payload Enabled");
-        sendInput(MOUSEEVENTF_LEFTDOWN);
-        setTimer(&timerPayload, waitingTime, callbackPayload);
-    } else {
-        printText("Payload Disabled");
-        sendInput(MOUSEEVENTF_LEFTUP);
-        killTimer(&timerPayload);
-        printCounter();
-        counter = 0;
-        dy = -DELTA;
-    }
-}
+void printMicrophoneState() {
+    HRESULT hr;
+    IMMDevice* pDevice = NULL;
+    IAudioEndpointVolume* paeVolume = NULL;
+    BOOL bMute;
 
-inline void increaseWT(UINT i) {
-    waitingTime += i;
-    printWT();
-}
+    hr = pEnumerator->GetDefaultAudioEndpoint(eCapture, eCommunications, &pDevice);
+    EXIT_ON_ERROR(hr, "GetDefaultAudioEndpoint failed");
 
-inline void decreaseWT(UINT i) {
-    waitingTime -= i;
-    if (waitingTime < 1) waitingTime += i;
-    printWT();
+    hr = pDevice->Activate(__uuidof(IAudioEndpointVolume), CLSCTX_ALL, NULL, (void**)&paeVolume);
+    EXIT_ON_ERROR(hr, "pDevice->Activate failed");
+
+    hr = paeVolume->GetMute(&bMute);
+    EXIT_ON_ERROR(hr, "paeVolume->GetMute failed");
+
+    printText(bMute ? "Default Audio Device Muted" : "Default Audio Device Unmuted");
+Exit:
+    SAFE_RELEASE(paeVolume);
+    SAFE_RELEASE(pDevice);
 }
 
 inline void setTimer(UINT_PTR *timer, UINT uElapse, TIMERPROC callback) {
@@ -99,17 +87,6 @@ inline void sendInput(DWORD flags) {
     Inputs[0].type = INPUT_MOUSE;
     Inputs[0].mi.dwFlags = flags;
     SendInput(1, Inputs, sizeof(INPUT));
-}
-
-void CALLBACK callbackPayload(HWND hwnd, UINT uMsg, UINT timerId, DWORD dwTime) {
-    ++counter;
-    INPUT Inputs[1] = { 0 };
-    Inputs[0].type = INPUT_MOUSE;
-    Inputs[0].mi.dy = dy = -dy;
-    Inputs[0].mi.dwFlags = MOUSEEVENTF_MOVE;
-    SendInput(1, Inputs, sizeof(INPUT));
-    killTimer(&timerPayload);
-    setTimer(&timerPayload, waitingTime, callbackPayload);
 }
 
 void CALLBACK callbackController(HWND hwnd, UINT uMsg, UINT timerId, DWORD dwTime) {
@@ -134,22 +111,7 @@ void printText(PCSTR text) {
     WriteConsoleA(hStdOut, pszDest, ppszDestEnd - pszDest, NULL, NULL);
 }
 
-void printIntVariable(PCSTR name, int value) {
-    const size_t cchDest = 32;
-    CHAR pszDest[cchDest];
-    CHAR* ppszDestEnd;
-    StringCchPrintfExA(pszDest, cchDest, &ppszDestEnd, NULL, NULL, "%s = %d\n", name, value);
-    WriteConsoleA(hStdOut, pszDest, ppszDestEnd - pszDest, NULL, NULL);
-}
-
 int main() {
-    //LPWSTR* szArglist;
-    //int nArgs;
-    //szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
-    //if (szArglist == NULL) ExitProcess(1);
-    //if (nArgs == 2) waitingTime = _wtoi(szArglist[1]);
-    //LocalFree(szArglist);
-
     CoInitializeEx(NULL, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
     HRESULT hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), NULL, CLSCTX_ALL, __uuidof(IMMDeviceEnumerator), (void**)&pEnumerator);
     if (FAILED(hr)) {
@@ -157,7 +119,7 @@ int main() {
         ExitProcess(1);
     }
 
-    printWT();
+    printMicrophoneState();
     setTimer(&timerController, PLFREQ, callbackController);
 
     MSG msg;
