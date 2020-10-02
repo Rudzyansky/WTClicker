@@ -12,6 +12,8 @@ const HANDLE hStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
 void printText(const CHAR* text);
 
 void callbackExit();
+void callbackTerminal();
+void callbackCloseActive();
 void callbackHoldLeft();
 void callbackHoldRight();
 void callbackToggleMicrophone();
@@ -20,6 +22,8 @@ struct Instance { std::vector<BYTE> keys; void (*callback)(); bool pressed = fal
 
 std::vector<Instance> keys = {
     { { VK_CONTROL, VK_MENU, 'E' }, callbackExit},
+    { { VK_LWIN, VK_RETURN }, callbackTerminal},
+    { { VK_LWIN, VK_SHIFT, 'Q' }, callbackCloseActive},
 
     { { VK_MENU, VK_XBUTTON1 }, callbackHoldLeft},
     { { VK_MENU, VK_XBUTTON2 }, callbackHoldRight},

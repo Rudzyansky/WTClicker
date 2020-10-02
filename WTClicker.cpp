@@ -4,13 +4,33 @@
 #include <endpointvolume.h>
 #include "WTClicker.h"
 
-#define EXIT_ON_ERROR(hr, message) if (FAILED(hr)) { printText(message); PostQuitMessage(1); goto Exit; }
+#define EXIT_ON_ERROR_WO_GOTO(hr, message) if (FAILED(hr)) { printText(message); PostQuitMessage(hr); }
+#define EXIT_ON_ERROR(hr, message) if (FAILED(hr)) { printText(message); PostQuitMessage(hr); goto Exit; }
 #define SAFE_RELEASE(instance) if ((instance) != NULL) { (instance)->Release(); (instance) = NULL; }
 
 void callbackExit() {
     killTimer(&timerController);
     printText("Exiting");
     PostQuitMessage(0);
+}
+
+void callbackTerminal() {
+    printText("Open Terminal");
+    STARTUPINFOA si;
+    PROCESS_INFORMATION pi;
+
+    ZeroMemory( &si, sizeof(si) );
+    si.cb = sizeof(si);
+    ZeroMemory( &pi, sizeof(pi) );
+
+    HRESULT hr = CreateProcessA(NULL, (LPSTR)"wt.exe", NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+    EXIT_ON_ERROR_WO_GOTO(hr, "CreateProcess");
+}
+
+void callbackCloseActive() {
+    printText("Close Window");
+    LRESULT lr = SendMessage(GetForegroundWindow(), WM_SYSCOMMAND, SC_CLOSE, 0);
+    EXIT_ON_ERROR_WO_GOTO(lr, "CloseWindow");
 }
 
 void callbackHoldLeft() {
