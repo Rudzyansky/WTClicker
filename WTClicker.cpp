@@ -4,7 +4,8 @@
 #include <endpointvolume.h>
 #include "WTClicker.h"
 
-#define EXIT_ON_ERROR_WO_GOTO(hr, message) if (FAILED(hr)) { printText(message); PostQuitMessage(hr); }
+#define EXIT_ON_ERROR_BR(br, message) if (FAILED(br)) { printText(message); PostQuitMessage(1); }
+#define EXIT_ON_ERROR_LR(lr, message) if (FAILED(lr)) { printText(message); PostQuitMessage((int)lr); }
 #define EXIT_ON_ERROR(hr, message) if (FAILED(hr)) { printText(message); PostQuitMessage(hr); goto Exit; }
 #define SAFE_RELEASE(instance) if ((instance) != NULL) { (instance)->Release(); (instance) = NULL; }
 
@@ -23,14 +24,14 @@ void callbackTerminal() {
     si.cb = sizeof(si);
     ZeroMemory( &pi, sizeof(pi) );
 
-    HRESULT hr = CreateProcessA(NULL, (LPSTR)"wt.exe", NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
-    EXIT_ON_ERROR_WO_GOTO(hr, "CreateProcess");
+    BOOL br = CreateProcessA(NULL, (LPSTR)"wt.exe", NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
+    EXIT_ON_ERROR_BR(br, "CreateProcess");
 }
 
 void callbackCloseActive() {
     printText("Close Window");
     LRESULT lr = SendMessage(GetForegroundWindow(), WM_SYSCOMMAND, SC_CLOSE, 0);
-    EXIT_ON_ERROR_WO_GOTO(lr, "CloseWindow");
+    EXIT_ON_ERROR_LR(lr, "CloseWindow");
 }
 
 void callbackHoldLeft() {
