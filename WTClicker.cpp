@@ -4,7 +4,7 @@
 #include <endpointvolume.h>
 #include "WTClicker.h"
 
-#define EXIT_ON_ERROR_BR(br, message) if (FAILED(br)) { printText(message); PostQuitMessage(1); }
+#define EXIT_ON_ERROR_BR(br, message) if (!br) { printText(message); PostQuitMessage(1); }
 #define EXIT_ON_ERROR_LR(lr, message) if (FAILED(lr)) { printText(message); PostQuitMessage((int)lr); }
 #define EXIT_ON_ERROR(hr, message) if (FAILED(hr)) { printText(message); PostQuitMessage(hr); goto Exit; }
 #define SAFE_RELEASE(instance) if ((instance) != NULL) { (instance)->Release(); (instance) = NULL; }
@@ -129,7 +129,7 @@ void printText(PCSTR text) {
     CHAR pszDest[cchDest];
     CHAR* ppszDestEnd;
     StringCchPrintfExA(pszDest, cchDest, &ppszDestEnd, NULL, NULL, "%s\n", text);
-    WriteConsoleA(hStdOut, pszDest, ppszDestEnd - pszDest, NULL, NULL);
+    WriteConsoleA(hStdOut, pszDest, (DWORD)(ppszDestEnd - pszDest), NULL, NULL);
 }
 
 int main() {
