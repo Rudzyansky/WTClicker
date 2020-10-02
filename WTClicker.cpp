@@ -140,7 +140,7 @@ int main() {
     }
 
     printMicrophoneState();
-    setTimer(&timerController, PLFREQ, callbackController);
+    setTimer(&timerController, PLFREQ, (TIMERPROC)callbackController);
 
     MSG msg;
     while (GetMessage(&msg, NULL, 0, 0)) {
